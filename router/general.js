@@ -4,6 +4,8 @@ let isValid = require("./auth_users.js").isValid;
 let users = require("./auth_users.js").users;
 
 const public_users = express.Router();
+const axios = require('axios'); // Add at top if not already
+
 
 /********************
  * User Registration
@@ -23,12 +25,26 @@ public_users.post("/register", (req, res) => {
     return res.status(201).json({ message: `User '${username}' registered successfully.` });
 });
 
+
 /********************
- * Get All Books
+ * Get All Books (Async)
  ********************/
-public_users.get("/", (req, res) => {
-    return res.status(200).send(JSON.stringify(books, null, 2));
+public_users.get("/books-async", async (req, res) => {
+    try {
+        // Simulate async operation
+        const allBooks = await new Promise((resolve, reject) => {
+            if (books) resolve(books);
+            else reject("Books data not found");
+        });
+        res.status(200).json(allBooks);
+    } catch (error) {
+        res.status(500).json({ message: "Error fetching books", error });
+    }
 });
+
+
+
+
 
 /********************
  * Get Book by ISBN
