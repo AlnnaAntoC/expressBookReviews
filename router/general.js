@@ -47,47 +47,71 @@ public_users.get("/books-async", async (req, res) => {
 
 
 /********************
- * Get Book by ISBN
+ * Get Book by ISBN (Async/Await)
  ********************/
-public_users.get("/isbn/:isbn", (req, res) => {
-    const isbn = req.params.isbn;
-    const book = books[isbn] || books[Number(isbn)];
+public_users.get("/isbn-async/:isbn", async (req, res) => {
+    try {
+        const isbn = req.params.isbn;
 
-    if (!book) {
-        return res.status(404).json({ message: `Book with ISBN ${isbn} not found.` });
+        const book = await new Promise((resolve, reject) => {
+            if (books[isbn] || books[Number(isbn)]) {
+                resolve(books[isbn] || books[Number(isbn)]);
+            } else {
+                reject(`Book with ISBN ${isbn} not found`);
+            }
+        });
+
+        res.status(200).json(book);
+    } catch (error) {
+        res.status(404).json({ message: error });
     }
-    return res.status(200).json(book);
 });
 
 /********************
- * Get Book by Author
+ * Get Books by Author (Async/Await)
  ********************/
-public_users.get("/author/:author", (req, res) => {
-    const authorName = req.params.author.trim().toLowerCase();
-    const matchedBooks = Object.keys(books)
-        .filter(key => books[key].author?.toLowerCase() === authorName)
-        .map(key => ({ isbn: key, ...books[key] }));
+public_users.get("/author-async/:author", async (req, res) => {
+    try {
+        const authorName = req.params.author.trim().toLowerCase();
 
-    if (matchedBooks.length === 0)
-        return res.status(404).json({ message: `No books found for author: ${req.params.author}` });
+        const matchedBooks = await new Promise((resolve, reject) => {
+            const booksByAuthor = Object.keys(books)
+                .filter(key => books[key].author?.toLowerCase() === authorName)
+                .map(key => ({ isbn: key, ...books[key] }));
+            
+            if (booksByAuthor.length > 0) resolve(booksByAuthor);
+            else reject(`No books found for author: ${req.params.author}`);
+        });
 
-    return res.status(200).json(matchedBooks);
+        res.status(200).json(matchedBooks);
+    } catch (error) {
+        res.status(404).json({ message: error });
+    }
 });
+
 
 /********************
- * Get Book by Title
+ * Get Books by Title (Async/Await)
  ********************/
-public_users.get("/title/:title", (req, res) => {
-    const titleName = req.params.title.trim().toLowerCase();
-    const matchedBooks = Object.keys(books)
-        .filter(key => books[key].title?.toLowerCase() === titleName)
-        .map(key => ({ isbn: key, ...books[key] }));
+public_users.get("/title-async/:title", async (req, res) => {
+    try {
+        const titleName = req.params.title.trim().toLowerCase();
 
-    if (matchedBooks.length === 0)
-        return res.status(404).json({ message: `No books found with title: ${req.params.title}` });
+        const matchedBooks = await new Promise((resolve, reject) => {
+            const booksByTitle = Object.keys(books)
+                .filter(key => books[key].title?.toLowerCase() === titleName)
+                .map(key => ({ isbn: key, ...books[key] }));
 
-    return res.status(200).json(matchedBooks);
+            if (booksByTitle.length > 0) resolve(booksByTitle);
+            else reject(`No books found with title: ${req.params.title}`);
+        });
+
+        res.status(200).json(matchedBooks);
+    } catch (error) {
+        res.status(404).json({ message: error });
+    }
 });
+
 
 /********************
  * Get Reviews
